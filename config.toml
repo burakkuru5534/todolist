@@ -1,0 +1,12 @@
+product = "todolist"
+port = 3333
+sqls = "./sql"
+
+[db]
+#host="10.8.0.1"
+host="127.0.0.1"
+port=5432
+user="postgres"
+pass="tayitkan"
+name="todoapp"
+# name="score_sysmex"
