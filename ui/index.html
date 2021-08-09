@@ -1,19 +1,105 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <title>VueStrap</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="shortcut icon" href="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/GNOME_Todo_icon_2019.svg/1200px-GNOME_Todo_icon_2019.svg.png" type="image/x-icon">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css" integrity="sha512-5A8nwdMOWrSz20fDsjczgUidUBR8liPYU+WymTZP1lmY9G6Oc7HlZv156XqnsgNUzTyMefFTcsFH/tnJE/+xBg==" crossorigin="anonymous" />
-  </head>
-  <body class="text-light bg-dark">
-    <div id="app"></div>
-    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script> -->
-    <script src="/dist/build.js"></script>
+<!-- public/index.html -->
 
-  </body>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  <title>TODO App</title>
+
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet"  href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+
+  <!-- JQuery -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+
+  <!-- Latest compiled and minified JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+
+  <!-- Vue.js -->
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/vue/1.0.24/vue.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue-resource/0.7.0/vue-resource.min.js"></script>
+</head>
+<body>
+<div class="container">
+  <div class="row">
+    <div class="col-md-4">
+      <h2>My Tasks</h2>
+      <ul class="list-group">
+        <li class="list-group-item" v-for="task in tasks">
+          {{ task.EventContent }}
+          <span class="pull-right">
+                                <button class="btn btn-xs btn-danger" v-on:click="deleteTask($index)">
+                                    <i class="fa fa-trash-o" aria-hidden="true"></i>
+                                </button>
+                            </span>
+        </li>
+      </ul>
+      <div class="input-group">
+        <input type="text"
+               class="form-control"
+               placeholder="New Task"
+               v-on:keyup.enter="createTask"
+               v-model="newTask.EventContent">
+        <span class="input-group-btn">
+                            <button class="btn btn-primary" type="button" v-on:click="createTask">Create</button>
+                        </span>
+      </div><!-- /input-group -->
+    </div>
+  </div>
+</div>
+
+<script>
+  new Vue({
+    el: 'body',
+
+    data: {
+      tasks: [],
+      newTask: {}
+    },
+
+    // This is run whenever the page is loaded to make sure we have a current task list
+    created: function() {
+      // Use the vue-resource $http client to fetch data from the /tasks route
+      this.$http.get('http://localhost:8081/todolist').then(function(response) {
+        console.log(response)
+        this.tasks = response.data.Data ? response.data.Data : []
+      })
+
+    },
+
+    methods: {
+      createTask: function() {
+        if (!$.trim(this.newTask.EventContent)) {
+          this.newTask = {}
+          return
+        }
+
+        // Post the new task to the /tasks route using the $http client
+        this.$http.post('http://localhost:8081/todo', this.newTask).success(function(response) {
+          this.newTask.id = response.created
+          this.tasks.push(this.newTask)
+          console.log("Task created!")
+          console.log(this.newTask)
+          this.newTask = {}
+        }).error(function(error) {
+          console.log(error)
+        });
+      },
+
+      deleteTask: function(index) {
+        // Use the $http client to delete a task by its id
+        this.$http.delete('/tasks/' + this.tasks[index].id).success(function(response) {
+          this.tasks.splice(index, 1)
+          console.log("Task deleted!")
+        }).error(function(error) {
+          console.log(error)
+        })
+      }
+    }
+  })
+</script>
+</body>
 </html>

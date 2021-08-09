@@ -9,7 +9,7 @@
       </div>
       <form @submit.prevent="addTask">
         <div class="input-group mb-3">
-          <input type="text" class="form-control" placeholder="Task Name" v-model="taskName">
+          <input type="text" class="form-control" placeholder="Task Name" v-model="EventContent">
           <div class="input-group-append">
             <button v-if="update" class="btn btn-warning" type="submit">
               <i class="fa fa-pencil" aria-hidden="true"></i>
@@ -38,13 +38,11 @@
 export default {
   name: 'app',
   data () {
-    const endPoint = '/todolist'
 
     return {
-      url: endPoint,
       title: 'To do List App',
       msg: 'Add your to do \'s',
-      taskName: "",
+      EventContent: "",
       tasks: [
 
       ],
@@ -55,83 +53,42 @@ export default {
       deleteMultiple: false
     }
   },
-  updated: function(){
-    console.log("UPDATED----");
-    this.tasks.forEach((task) => {
-      console.log(task.task,  "--", task.check);
-    });
-    console.log("----");
+  // This is run whenever the page is loaded to make sure we have a current task list
+  created: function() {
+    // Use the vue-resource $http client to fetch data from the /tasks route
+    this.$http.get('/todo').then(function(response) {
+      this.tasks = response.data.items ? response.data.items : []
+    })
   },
+
   methods: {
-    deleteMulti: function(e){
-      this.tasks.forEach((task) => {
-        console.log(task.task, task.check);
-      });
-      console.log("----");
-      var ids = [];
-      this.tasks.forEach((task) => {
-        if(task.check == true){
-          ids.push(task.index)
-        }
-      });
-      ids.forEach(id => {
-        this.tasks = this.tasks.filter(function(task) {
-          return task['index'] != id;
-        });
-      });
-      this.deleteMultiple = false;
-      this.tasks.forEach((task) => {
-        console.log("DELETE:", task.task, task.check);
+    createTask: function() {
+      if (!$.trim(this.newTask.name)) {
+        this.newTask = {}
+        return
+      }
+
+      // Post the new task to the /tasks route using the $http client
+      this.$http.put('/tasks', this.newTask).success(function(response) {
+        this.newTask.id = response.created
+        this.tasks.push(this.newTask)
+        console.log("Task created!")
+        console.log(this.newTask)
+        this.newTask = {}
+      }).error(function(error) {
+        console.log(error)
       });
     },
 
-    changeCheck: function(e){
-      this.tasks[e.target.id]['check'] = e.target.checked
-      var count = 0
-      this.tasks.forEach((task) => {
-        if(task.check == true){
-          count = count + 1
-        }
+    deleteTask: function(index) {
+      // Use the $http client to delete a task by its id
+      this.$http.delete('/tasks/' + this.tasks[index].id).success(function(response) {
+        this.tasks.splice(index, 1)
+        console.log("Task deleted!")
+      }).error(function(error) {
+        console.log(error)
       })
-      this.deleteMultiple = (count > 0) ? true : false
-      console.log("changeCheck");
-      this.tasks.forEach((task) => {
-        console.log(task.task, task.check);
-      });
-    },
-
-    loadData: function(index){
-      console.log(this.tasks)
-      this.taskName = this.tasks[index]['task']
-      this.updateIndex = index
-      this.update=true
-    },
-
-    addTask: function(){
-      if(this.update == true){
-
-        this.update = false
-        this.tasks[this.updateIndex]['task'] = this.taskName
-
-      }
-      else{
-        var theIndex = this.tasks.length;
-        if(this.taskName != ''){
-          this.tasks.push({
-            "index": theIndex,
-            "task": this.taskName,
-            "check": false
-            })
-        }
-        else{
-          this.error = true
-        }
-
-      }
-
-      this.taskName = ''
-    },
-
+    }
   }
 }
 </script>

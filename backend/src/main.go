@@ -25,5 +25,5 @@ func main() {
 	})
 
 	//start server
-	log.Fatal(http.ListenAndServe(":8080", corsWrapper.Handler(r)))
+	log.Fatal(http.ListenAndServe(":8081", corsWrapper.Handler(r)))
 }

@@ -7,7 +7,7 @@ import (
 )
 
 type todoReqBody struct {
-	Content string `json:"Content"`
+	EventContent string `json:"EventContent"`
 }
 
 type todoRespBody struct {
@@ -94,7 +94,7 @@ func ToDoCreate(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("Connected!")
 	sq:= fmt.Sprintf(`insert into event (event_content) values ($1)`)
-	_,err = db.Exec(sq,reqBody.Content)
+	_,err = db.Exec(sq,reqBody.EventContent)
 	if err != nil {
 		response(nil, 500, w)
 		return
